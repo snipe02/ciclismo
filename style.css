@@ -1,0 +1,218 @@
+:root {
+    --neon-blue: #00f2ff;
+    --neon-pink: #ff00ff;
+    --dark-bg: #0f0f1a;
+    --card-bg: rgba(15, 15, 26, 0.7);
+    --text-light: #ffffff;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: var(--dark-bg);
+    color: var(--text-light);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+    border: 1px solid var(--neon-blue);
+}
+
+h1 {
+    color: var(--neon-blue);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.header-image {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 2px solid var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+    object-fit: cover;
+    max-height: 300px;
+}
+
+.event-info {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--neon-pink);
+}
+
+.event-info h2 {
+    color: var(--neon-pink);
+    margin-top: 0;
+}
+
+.event-info ul {
+    padding-left: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--neon-blue);
+}
+
+label::after {
+    content: " *";
+    color: var(--neon-pink);
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--neon-blue);
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input:invalid, select:invalid {
+    border-color: var(--neon-pink);
+}
+
+.required-hint {
+    color: var(--neon-pink);
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+button {
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-pink));
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 242, 255, 0.4);
+}
+
+.participants-list {
+    margin-top: 40px;
+}
+
+.participant-card {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid var(--neon-blue);
+    position: relative;
+}
+
+.participant-number {
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--neon-pink);
+    color: var(--dark-bg);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.participant-count {
+    display: inline-block;
+    margin-left: 10px;
+    background: var(--neon-pink);
+    color: var(--dark-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--neon-blue);
+    color: var(--dark-bg);
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: none;
+}
+
+.error-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #ff3333;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: none;
+}
+
+.already-registered {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff3333;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--neon-blue);
+}
+
+.success-message {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 255, 0, 0.2);
+    border: 1px solid #00ff00;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.debug-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-size: 12px;
+    display: none;
+}

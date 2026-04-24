@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pedal Noturno · Inscrições</title>
+    <!-- Tailwind CSS CDN + Font Awesome (opcional para ícones) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Animações customizadas e efeitos neon/glow -->
+    <style>
+        /* Animações modernas + efeitos extras que complementam o Tailwind */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(235, 52, 7, 0.89); }
+            70% { box-shadow: 0 0 0 6px rgba(154, 235, 3, 0.952); }
+            100% { box-shadow: 0 0 0 0 rgba(146, 119, 101, 0.932); }
+        }
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .animate-fade-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        }
+        .animate-slide-left {
+            animation: slideInLeft 0.4s ease-out forwards;
+        }
+        .pulse-neon {
+            animation: pulseGlow 2s infinite;
+        }
+        .card-hover {
+            transition: all 0.25s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 12px 28px -8px rgba(100, 71, 59, 0.952);
+        }
+        .btn-press:active {
+            transform: scale(0.96);
+        }
+        /* glassmorphism base */
+        .glass-card {
+            background: rgba(14, 24, 36, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(233, 236, 7, 0.904);
+        }
+        /* scroll personalizado */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ee3b04;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1de40b;
+            border-radius: 10px;
+        }
+        body {
+            background: radial-gradient(circle at 10% 20%, #95eee9, #dee06e);
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        }
+        /* Input focus glow */
+        input:focus, select:focus {
+            box-shadow: 0 0 0 3px rgba(255, 81, 0, 0.938);
+            outline: none;
+            border-color: #2a942a;
+        }
+        /* Avatar estilos */
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #f54611, #1e293b);
+            color: #678522;
+            box-shadow: 0 0 8px rgba(133, 228, 9, 0.4);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .avatar-header {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(145deg, #ec3a0e, #ff3c0020);
+            border: 1.5px solid #00f2ff;
+            font-size: 1.7rem;
+        }
+        .avatar span {
+            filter: drop-shadow(0 0 2px cyan);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6 font-sans antialiased">
+
+    <div class="w-full max-w-4xl mx-auto relative z-10">
+        <!-- Container principal com glassmorphism e animação -->
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 animate-fade-up border border-cyan-400/30">
+            
+            <!-- HEADER com foto de perfil (avatar) no logo -->
+            <div class="px-5 pt-6 pb-2 text-center bg-gradient-to-r from-cyan-900/20 to-emerald-900/20 flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <!-- Avatar / Foto de perfil no logo -->
+                    <div class="avatar avatar-header flex items-center justify-center">
+                        🚴‍♂️
+                    </div>
+                    <div class="text-left">
+                        <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-cyan-300 via-cyan-400 to-emerald-400 bg-clip-text text-transparent tracking-tight drop-shadow-sm">
+                            PEDAL NOTURNO / BOLIVIA
+                        </h1>
+                        <p class="text-cyan-200/70 text-sm mt-1 font-medium">inscrição · 23/04/2026 ate o dia 24/05/2025 as 17 horas</p>
+                    </div>
+                </div>
+                <div class="bg-cyan-800/30 rounded-full px-3 py-1 text-xs text-cyan-200 border border-cyan-500/30">
+                      passeio exclusivo
+                </div>
+            </div>
+
+            <!-- Imagem do evento -->
+            <div class="px-5 pt-3 pb-2">
+                <div class="relative rounded-xl overflow-hidden shadow-lg shadow-cyan-500/20 border border-emerald-400/40 transition-all hover:scale-[1.01] duration-300">
+                    <img src="ftt.jpeg" alt="Pedal Noturno" class="w-full h-48 md:h-56 object-cover" onerror="this.onerror=null; this.src='https://placehold.co/800x400/1a2a2a/00f2ff?text=PEDAL+NOTURNO';">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+                </div>
+            </div>
+
+            <!-- Mensagens de estado (já inscrito / sucesso) -->
+            <div id="alreadyRegistered" class="hidden mx-5 mt-4 p-4 rounded-xl bg-red-950/70 border-l-8 border-red-500 backdrop-blur-sm animate-fade-up">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-xl">⚠️</div>
+                    <div>
+                        <h3 class="font-bold text-red-300 text-lg">Você já está inscrito!</h3>
+                        <p class="text-red-200/80 text-sm">Este número de WhatsApp já está cadastrado para o evento.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="successMessage" class="hidden mx-5 mt-4 p-4 rounded-xl bg-emerald-950/70 border-l-8 border-emerald-400 backdrop-blur-sm animate-fade-up">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">✓</div>
+                    <div>
+                        <h3 class="font-bold text-emerald-300 text-lg">Inscrição Confirmada!</h3>
+                        <p class="text-emerald-200/80 text-sm">Sua inscrição foi realizada com sucesso. Te esperamos no pedal!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INFORMAÇÕES DO EVENTO (estilo moderno) -->
+            <div class="mx-5 mt-5 p-5 rounded-xl bg-black/30 border border-cyan-500/30 shadow-inner transition-all">
+                <div class="flex flex-wrap justify-between items-start border-b border-emerald-500/30 pb-2 mb-3">
+                    <h2 class="text-xl font-bold text-emerald-400 flex items-center gap-2">🚴‍♂️ Pedal-passeio – 24/04/2026</h2>
+                    <span class="bg-cyan-900/60 text-cyan-200 text-xs px-3 py-1 rounded-full">Sexta-feira · 17h</span>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4 text-gray-200 text-sm">
+                    <div class="space-y-2">
+                        <p class="flex items-center gap-2"><span class="text-cyan-400 text-lg">🕓</span> <strong>Saída encontro:</strong> 17:00 – ponte curralinhos-patinhos</p>
+                        <div>
+                            <p class="flex items-center gap-2"><span class="text-emerald-400">🟢 Percurso:</span></p>
+                            <ul class="list-disc list-inside ml-5 text-gray-300 space-y-0.5">
+                                <li>jacaré</li>
+                                <li>Bom Lugar</li>
+                                <li>...</li>
+                                <li>...</li>
+                                <li>...</li>
+                            
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <p class="flex items-center gap-2"><span class="text-yellow-400">🚧 Paradas:</span></p>
+                            <ul class="list-disc list-inside ml-5 text-gray-300">
+                                <li>1ª </li>
+                                <li>2ª </li>
+                                <li>3ª </li>
+                                
+                            </ul>
+                        </div>
+                        <p><span class="text-rose-400">🔴 Chegada:</span> Praça do projeto ⇄ Curralinhos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORMULÁRIO DE INSCRIÇÃO -->
+            <form id="registrationForm" class="px-5 py-4 space-y-5">
+                <div class="form-group">
+                    <label class="block text-cyan-300 font-semibold text-sm mb-1.5 tracking-wide">NOME COMPLETO <span class="text-emerald-400">*</span></label>
+                    <input type="text" id="name" required placeholder="Digite seu nome completo" autocomplete="name"
+                        class="w-full px-4 py-3 rounded-xl bg-gray-900/70 border border-cyan-500/60 text-white placeholder-gray-400 focus:border-emerald-400 transition-all duration-200 text-base">
+                    <p class="text-emerald-400/70 text-xs mt-1">Obrigatório</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-cyan-300 font-semibold text-sm mb-1.5">WHATSAPP <span class="text-emerald-400">*</span></label>
+                    <input type="tel" id="phone" required placeholder="(00) 00000-0000" inputmode="numeric" autocomplete="tel"
+                        class="w-full px-4 py-3 rounded-xl bg-gray-900/70 border border-cyan-500/60 text-white placeholder-gray-400 focus:border-emerald-400 transition-all duration-200 text-base">
+                    <p class="text-emerald-400/70 text-xs mt-1">Formato: (DDD) 9 0000-0000</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="block text-cyan-300 font-semibold text-sm mb-1.5">NÍVEL <span class="text-emerald-400">*</span></label>
+                    <select id="level" required class="w-full px-4 py-3 rounded-xl bg-gray-900/70 border border-cyan-500/60 text-white focus:border-emerald-400 transition-all cursor-pointer">
+                        <option value="" disabled selected>Selecione seu nível</option>
+                        <option value="Iniciante">🚲 Iniciante</option>
+                        <option value="Intermediário">⚡ Intermediário</option>
+                        <option value="Avançado">🔥 Avançado</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="w-full relative overflow-hidden group bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-95 text-lg tracking-wide btn-press">
+                    <span class="relative z-10 flex items-center justify-center gap-2">✨ CONFIRMAR INSCRIÇÃO ✨</span>
+                    <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+                </button>
+
+                <div id="debugInfo" class="hidden text-[11px] font-mono bg-black/40 p-2 rounded-lg text-cyan-300/70 break-all"></div>
+            </form>
+
+            <!-- LISTA DE ÚLTIMAS INSCRIÇÕES COM FOTO DE PERFIL (AVATAR) -->
+            <div class="px-5 pb-6 pt-2">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <h2 class="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent flex items-center gap-2">
+                        📸 ÚLTIMAS INSCRIÇÕES
+                    </h2>
+                    <div class="bg-cyan-900/40 backdrop-blur-sm px-3 py-1 rounded-full text-cyan-200 text-sm font-mono border border-cyan-400/40">
+                        TOTAL <span id="totalParticipants" class="font-black text-emerald-300 text-lg ml-1">0</span>
+                    </div>
+                </div>
+                <div id="participantsContainer" class="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                    <div class="flex justify-center items-center p-6 text-cyan-300/70 gap-2">
+                        <div class="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Carregando aventureiros...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICAÇÕES TOAST (dinâmicas) -->
+    <div id="notification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 font-semibold z-50 transition-all duration-300 opacity-0 pointer-events-none" style="transition: opacity 0.3s;">
+        <span>✓</span> <span id="notifMessage">Inscrição confirmada!</span>
+    </div>
+    <div id="errorNotification" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-red-600 to-rose-600 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 font-semibold z-50 transition-all duration-300 opacity-0 pointer-events-none">
+        <span>⚠️</span> <span id="errorMessage">Erro ao processar</span>
+    </div>
+
+    <script>
+        // =================== CONFIGURAÇÃO FIREBASE ===================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAY3TNIPXDjYzGxUffXq1c42mOx7hh7rUo",
+            authDomain: "bikeeco.firebaseapp.com",
+            databaseURL: "https://bikeeco-default-rtdb.firebaseio.com",
+            projectId: "bikeeco",
+            storageBucket: "bikeeco.firebasestorage.app",
+            messagingSenderId: "953347283032",
+            appId: "1:953347283032:web:222d2d9222b6e64ca6522d"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const PARTICIPANTS_REF = database.ref('participants');
+        const PHONE_INDEX_REF = database.ref('phoneIndex');
+
+        // DOM elements
+        const registrationForm = document.getElementById('registrationForm');
+        const participantsContainer = document.getElementById('participantsContainer');
+        const totalParticipantsElement = document.getElementById('totalParticipants');
+        const alreadyRegisteredDiv = document.getElementById('alreadyRegistered');
+        const successMessageDiv = document.getElementById('successMessage');
+        const submitBtn = document.getElementById('submitBtn');
+        const debugInfo = document.getElementById('debugInfo');
+        const notificationEl = document.getElementById('notification');
+        const errorNotificationEl = document.getElementById('errorNotification');
+
+        // Aux functions
+        function normalizePhone(phone) { return phone.replace(/\D/g, ''); }
+        function formatPhoneForDisplay(phone) {
+            const numbers = normalizePhone(phone);
+            if (numbers.length === 11) return `(${numbers.slice(0,2)}) ${numbers.slice(2,7)}-${numbers.slice(7)}`;
+            if (numbers.length === 10) return `(${numbers.slice(0,2)}) ${numbers.slice(2,6)}-${numbers.slice(6)}`;
+            return phone;
+        }
+        function showDebugInfo(msg) {
+            debugInfo.innerHTML = `🛠️ ${new Date().toLocaleTimeString()}: ${msg}`;
+            debugInfo.classList.remove('hidden');
+            setTimeout(() => { if(debugInfo) debugInfo.classList.add('hidden'); }, 5000);
+        }
+        function showNotificationToast(message, isError = false) {
+            const target = isError ? errorNotificationEl : notificationEl;
+            const msgSpan = isError ? document.getElementById('errorMessage') : document.getElementById('notifMessage');
+            if (msgSpan) msgSpan.innerText = message;
+            target.style.opacity = '1';
+            target.style.pointerEvents = 'none';
+            setTimeout(() => {
+                target.style.opacity = '0';
+            }, 2800);
+        }
+
+        // Phone mask
+        function setupPhoneMask() {
+            const phoneInput = document.getElementById('phone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0,11);
+                if (value.length <= 2) e.target.value = `(${value}`;
+                else if (value.length <= 7) e.target.value = `(${value.slice(0,2)}) ${value.slice(2)}`;
+                else e.target.value = `(${value.slice(0,2)}) ${value.slice(2,7)}-${value.slice(7,11)}`;
+            });
+        }
+
+        // Função para extrair iniciais do nome (até 2 letras)
+        function getInitials(name) {
+            if (!name) return "?";
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            const first = parts[0].charAt(0);
+            const last = parts[parts.length - 1].charAt(0);
+            return (first + last).toUpperCase();
+        }
+
+        // Gerar cor de fundo do avatar baseada no nome (estilo consistente)
+        function getAvatarColor(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash % 360);
+            return `hsl(${hue}, 70%, 55%)`;
+        }
+
+        // Renderização moderna com Avatar (foto de perfil com iniciais)
+        function addParticipantToDOM(index, participant) {
+            const card = document.createElement('div');
+            card.className = 'relative bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 pr-4 transition-all duration-300 card-hover animate-slide-left flex items-center gap-3';
+            card.style.animationDelay = `${index * 0.05}s`;
+            
+            const initials = getInitials(participant.name);
+            const avatarBg = getAvatarColor(participant.name);
+            
+            // Avatar circular com iniciais (simula foto de perfil)
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar flex-shrink-0';
+            avatarDiv.style.background = `linear-gradient(135deg, ${avatarBg}, #0a0a2a)`;
+            avatarDiv.style.boxShadow = `0 0 10px ${avatarBg}80`;
+            avatarDiv.innerHTML = `<span class="text-white text-lg font-black">${initials}</span>`;
+            
+            // Conteúdo do card
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'flex-1 min-w-0';
+            contentDiv.innerHTML = `
+                <div class="flex items-center flex-wrap gap-2">
+                    <span class="font-bold text-white text-base truncate">${escapeHtml(participant.name)}</span>
+                    <span class="bg-cyan-900/50 text-cyan-300 text-xs px-2 py-0.5 rounded-full font-mono">#${index}</span>
+                </div>
+                <div class="text-gray-300 text-sm font-mono flex items-center gap-1 flex-wrap">
+                    <span>📱 ${formatPhoneForDisplay(participant.phone)}</span>
+                </div>
+                <div class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-cyan-900/60 text-cyan-200">
+                    🚵 ${participant.level}
+                </div>
+            `;
+            
+            card.appendChild(avatarDiv);
+            card.appendChild(contentDiv);
+            participantsContainer.appendChild(card);
+        }
+
+        function escapeHtml(str) { 
+            if(!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        async function fetchParticipants() {
+            try {
+                showDebugInfo("Buscando participantes...");
+                const snapshot = await PARTICIPANTS_REF.orderByChild('created_at').once('value');
+                const data = snapshot.val();
+                let participants = [];
+                if(data) {
+                    Object.keys(data).forEach(key => { participants.push({ id: key, ...data[key] }); });
+                }
+                participants.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                showDebugInfo(`${participants.length} inscritos carregados`);
+                return participants;
+            } catch(e) { console.error(e); showDebugInfo(`Erro fetch: ${e.message}`); return []; }
+        }
+
+        async function isPhoneRegistered(phone) {
+            try {
+                const normalized = normalizePhone(phone);
+                const snap = await PHONE_INDEX_REF.child(normalized).once('value');
+                return snap.exists();
+            } catch(e) { return false; }
+        }
+
+        async function addParticipant(participant) {
+            const newRef = PARTICIPANTS_REF.push();
+            const participantWithTimestamp = { ...participant, created_at: new Date().toISOString() };
+            await newRef.set(participantWithTimestamp);
+            await PHONE_INDEX_REF.child(participant.phone).set({ participantId: newRef.key, timestamp: new Date().toISOString() });
+            return { id: newRef.key, ...participantWithTimestamp };
+        }
+
+        async function checkIfAlreadyRegistered() {
+            const savedPhone = localStorage.getItem('registeredPhone');
+            if (savedPhone) {
+                const isReg = await isPhoneRegistered(savedPhone);
+                if (isReg) {
+                    alreadyRegisteredDiv.classList.remove('hidden');
+                    registrationForm.style.display = 'none';
+                    return true;
+                } else {
+                    localStorage.removeItem('registeredPhone');
+                }
+            }
+            return false;
+        }
+
+        function validateForm(name, phone, level) {
+            if (!name || name.trim().length < 3) return "Nome deve ter pelo menos 3 caracteres";
+            const normalized = normalizePhone(phone);
+            if (normalized.length < 10 || normalized.length > 11) return "Telefone inválido (DDD + 8 ou 9 dígitos)";
+            if (!level) return "Selecione seu nível";
+            return null;
+        }
+
+        // Carregar lista com animação e avatares
+        async function loadParticipants() {
+            participantsContainer.innerHTML = `<div class="flex justify-center items-center p-6 text-cyan-300/70 gap-2"><div class="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div><span>Atualizando...</span></div>`;
+            const participants = await fetchParticipants();
+            participantsContainer.innerHTML = '';
+            if (participants.length === 0) {
+                participantsContainer.innerHTML = '<div class="text-center text-gray-400 p-6 italic bg-white/5 rounded-xl">✨ Nenhum participante ainda. Seja o primeiro!</div>';
+                totalParticipantsElement.innerText = '0';
+                return;
+            }
+            totalParticipantsElement.innerText = participants.length;
+            const recent = participants.slice(0, 15);
+            recent.forEach((p, idx) => addParticipantToDOM(idx+1, p));
+        }
+
+        // Inscrição submit
+        registrationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+            
+            const name = document.getElementById('name').value.trim();
+            const phoneRaw = document.getElementById('phone').value;
+            const level = document.getElementById('level').value;
+            
+            const validationError = validateForm(name, phoneRaw, level);
+            if (validationError) {
+                showNotificationToast(validationError, true);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+            
+            const normalizedPhone = normalizePhone(phoneRaw);
+            try {
+                const already = await isPhoneRegistered(normalizedPhone);
+                if (already) {
+                    localStorage.setItem('registeredPhone', normalizedPhone);
+                    alreadyRegisteredDiv.classList.remove('hidden');
+                    successMessageDiv.classList.add('hidden');
+                    registrationForm.style.display = 'none';
+                    showNotificationToast("Este número já está inscrito!", true);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    return;
+                }
+                
+                const newParticipant = { name, phone: normalizedPhone, level };
+                await addParticipant(newParticipant);
+                localStorage.setItem('registeredPhone', normalizedPhone);
+                registrationForm.reset();
+                successMessageDiv.classList.remove('hidden');
+                alreadyRegisteredDiv.classList.add('hidden');
+                registrationForm.style.display = 'none';
+                showNotificationToast("✅ Inscrição confirmada! Te esperamos lá.", false);
+                await loadParticipants();
+                showDebugInfo("Inscrição salva com sucesso.");
+            } catch (err) {
+                console.error(err);
+                showNotificationToast("Erro ao salvar. Tente novamente.", true);
+                showDebugInfo(`Firebase error: ${err.message}`);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        // Inicialização com TOGGLE do formulário quando já inscrito
+        async function initApp() {
+            setupPhoneMask();
+            const isAlready = await checkIfAlreadyRegistered();
+            if (!isAlready) {
+                registrationForm.style.display = 'block';
+                alreadyRegisteredDiv.classList.add('hidden');
+                successMessageDiv.classList.add('hidden');
+            } else {
+                registrationForm.style.display = 'none';
+            }
+            await loadParticipants();
+            showDebugInfo("Sistema pronto • Avatares ativos (foto de perfil com iniciais)");
+            // auto-refresh a cada 45s
+            setInterval(() => { loadParticipants(); }, 45000);
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+    <noscript>Seu navegador precisa suportar JavaScript.</noscript>
+</body>
+</html>
