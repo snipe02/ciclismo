@@ -2,14 +2,15 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- Meta Viewport reforçado para impedir zoom (fixo, sem escala) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pedal Noturno · Inscrições</title>
     <!-- Tailwind CSS CDN + Font Awesome (opcional para ícones) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <!-- Animações customizadas e efeitos neon/glow -->
+    <!-- Animações customizadas e efeitos neon/glow + prevenção de zoom via touch-action -->
     <style>
         /* Animações modernas + efeitos extras que complementam o Tailwind */
         @keyframes fadeInUp {
@@ -73,9 +74,12 @@
             background: #1de40b;
             border-radius: 10px;
         }
+        /* CORPO com prevenção de zoom via touch-action + fundo vibrante */
         body {
             background: radial-gradient(circle at 10% 20%, #95eee9, #dee06e);
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            touch-action: pan-x pan-y;  /* IMPEDE PINCH ZOOM (compatível com a maioria dos navegadores modernos) */
+            -webkit-text-size-adjust: 100%; /* evita ajuste de texto indesejado */
         }
         /* Input focus glow */
         input:focus, select:focus {
@@ -108,6 +112,18 @@
         }
         .avatar span {
             filter: drop-shadow(0 0 2px cyan);
+        }
+        /* Garantia que nenhum elemento force zoom via gestos */
+        html {
+            touch-action: pan-x pan-y;
+        }
+        /* Evitando que qualquer double-tap zoom ocorra em elementos de clique (cuidado, preserve scroll) */
+        button, .btn-press, [role="button"] {
+            touch-action: manipulation;
+        }
+        /* Inputs com tamanho mínimo para evitar zoom automático em iOS */
+        input, select, textarea {
+            font-size: 16px !important;
         }
     </style>
 </head>
@@ -228,7 +244,8 @@
                 </div>
 
                 <button type="submit" id="submitBtn"
-                    class="w-full relative overflow-hidden group bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-95 text-lg tracking-wide btn-press">
+                    class="w-full relative overflow-hidden group bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.01] active:scale-95 text-lg tracking-wide btn-press"
+                    style="touch-action: manipulation;">
                     <span class="relative z-10 flex items-center justify-center gap-2">✨ CONFIRMAR INSCRIÇÃO ✨</span>
                     <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                 </button>
@@ -529,11 +546,18 @@
                 registrationForm.style.display = 'none';
             }
             await loadParticipants();
-            showDebugInfo("Sistema pronto • Avatares ativos (foto de perfil com iniciais)");
+            showDebugInfo("Sistema pronto • Avatares ativos (foto de perfil com iniciais) • Zoom desabilitado");
             // auto-refresh a cada 45s
             setInterval(() => { loadParticipants(); }, 45000);
         }
 
+        // Prevenir qualquer evento que possa permitir zoom extra via teclado / gesto (garantia extra)
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+        document.addEventListener('touchmove', function(e) {
+            // não previne completamente mas ajuda com multi-touch em alguns casos - sem quebrar scroll
+            if (e.scale && e.scale !== 1) e.preventDefault();
+        }, { passive: false });
+        
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
     <noscript>Seu navegador precisa suportar JavaScript.</noscript>
