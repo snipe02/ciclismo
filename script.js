@@ -1,280 +1,269 @@
-// CONFIGURAÇÃO DO SUPABASE
-const SUPABASE_URL = 'https://acxfqpnpqibwygkobbzb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZxcG5wcWlid3lna29iYnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NTYyNjgsImV4cCI6MjA4MTMzMjI2OH0.0pvVQFw3UWUIbOppFQjFI_lhbveOPxRGjFYS_vWDb2Y';
-const TABLE_NAME = 'participants';
+// script.js - Firebase + gerenciamento completo
+// Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyAY3TNIPXDjYzGxUffXq1c42mOx7hh7rUo",
+    authDomain: "bikeeco.firebaseapp.com",
+    databaseURL: "https://bikeeco-default-rtdb.firebaseio.com",
+    projectId: "bikeeco",
+    storageBucket: "bikeeco.firebasestorage.app",
+    messagingSenderId: "953347283032",
+    appId: "1:953347283032:web:222d2d9222b6e64ca6522d"
+};
 
-// Inicializar o cliente Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const PARTICIPANTS_REF = database.ref('participants');
+const PHONE_INDEX_REF = database.ref('phoneIndex');
 
 // Elementos DOM
 const registrationForm = document.getElementById('registrationForm');
 const participantsContainer = document.getElementById('participantsContainer');
-const notification = document.getElementById('notification');
-const errorNotification = document.getElementById('errorNotification');
-const totalParticipantsElement = document.getElementById('totalParticipants');
-const alreadyRegisteredDiv = document.getElementById('alreadyRegistered');
-const successMessageDiv = document.getElementById('successMessage');
+const totalSpan = document.getElementById('totalParticipants');
+const alreadyDiv = document.getElementById('alreadyRegistered');
+const successDiv = document.getElementById('successMessage');
 const submitBtn = document.getElementById('submitBtn');
-const debugInfo = document.getElementById('debugInfo');
+const debugDiv = document.getElementById('debugInfo');
+const notificationToast = document.getElementById('notification');
+const errorToast = document.getElementById('errorNotification');
+const notifMsg = document.getElementById('notifMessage');
+const errorMsgSpan = document.getElementById('errorMessage');
 
-// Mostrar informações de debug
-function showDebugInfo(message) {
-    debugInfo.innerHTML = message;
-    debugInfo.style.display = 'block';
+// Helpers
+function normalizePhone(phone) {
+    return phone.replace(/\D/g, '');
 }
 
-// Verificar se o usuário já está registrado ao carregar a página
-function checkIfAlreadyRegistered() {
-    const savedPhone = localStorage.getItem('registeredPhone');
-    if (savedPhone) {
-        isPhoneRegistered(savedPhone).then(alreadyRegistered => {
-            if (alreadyRegistered) {
-                showAlreadyRegistered();
-            }
-        });
+function formatPhoneDisplay(phone) {
+    const numbers = normalizePhone(phone);
+    if (numbers.length === 11) return `(${numbers.slice(0,2)}) ${numbers.slice(2,7)}-${numbers.slice(7)}`;
+    if (numbers.length === 10) return `(${numbers.slice(0,2)}) ${numbers.slice(2,6)}-${numbers.slice(6)}`;
+    return phone;
+}
+
+function showDebug(msg) {
+    debugDiv.innerHTML = `🛠️ ${new Date().toLocaleTimeString()}: ${msg}`;
+    debugDiv.classList.remove('hidden');
+    setTimeout(() => debugDiv.classList.add('hidden'), 5000);
+}
+
+function showToast(message, isError = false) {
+    const toast = isError ? errorToast : notificationToast;
+    const msgSpan = isError ? errorMsgSpan : notifMsg;
+    msgSpan.innerText = message;
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2800);
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length-1].charAt(0)).toUpperCase();
+}
+
+function getAvatarColor(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 70%, 55%)`;
 }
 
-// Mostrar mensagem de já registrado
-function showAlreadyRegistered() {
-    registrationForm.style.display = 'none';
-    alreadyRegisteredDiv.style.display = 'block';
-    successMessageDiv.style.display = 'none';
-}
-
-// Mostrar mensagem de sucesso
-function showSuccessMessage() {
-    registrationForm.style.display = 'none';
-    alreadyRegisteredDiv.style.display = 'none';
-    successMessageDiv.style.display = 'block';
-}
-
-// Máscara de telefone
-document.getElementById('phone').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.substring(0, 11);
+// Adiciona participante ao DOM com avatar
+function renderParticipantCard(participant, index) {
+    const card = document.createElement('div');
+    card.className = 'participant-card';
+    const initials = getInitials(participant.name);
+    const avatarColor = getAvatarColor(participant.name);
     
-    if (value.length <= 2) {
-        e.target.value = value;
-    } else if (value.length <= 7) {
-        e.target.value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
-    } else {
-        e.target.value = `(${value.substring(0, 2)}) ${value.substring(2, 7)}-${value.substring(7, 11)}`;
-    }
-});
-
-// Mostrar notificação
-function showNotification() {
-    notification.style.display = 'block';
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-// Mostrar notificação de erro
-function showErrorNotification() {
-    errorNotification.style.display = 'block';
-    setTimeout(() => {
-        errorNotification.style.display = 'none';
-    }, 3000);
-}
-
-// Adicionar participante à lista
-function addParticipantToDOM(index, participant) {
-    const participantElement = document.createElement('div');
-    participantElement.className = 'participant-card';
-    participantElement.innerHTML = `
-        <div class="participant-number">${index}</div>
-        <div><strong>${participant.name}</strong></div>
-        <div>${participant.phone}</div>
-        <div>Nível: ${participant.level}</div>
+    card.innerHTML = `
+        <div class="avatar avatar-small" style="background: linear-gradient(135deg, ${avatarColor}, #0a0a2a); box-shadow: 0 0 8px ${avatarColor}80;">
+            <span style="color: white; font-weight: 900;">${initials}</span>
+        </div>
+        <div class="participant-info">
+            <div class="participant-name">
+                <span>${escapeHtml(participant.name)}</span>
+                <span class="participant-number">#${index}</span>
+            </div>
+            <div class="participant-phone">📱 ${formatPhoneDisplay(participant.phone)}</div>
+            <div class="participant-level">🚵 ${participant.level}</div>
+        </div>
     `;
-    participantsContainer.appendChild(participantElement);
+    return card;
 }
 
-// Buscar participantes do Supabase
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// Buscar participantes
 async function fetchParticipants() {
     try {
-        showDebugInfo("Buscando participantes do Supabase...");
-        
-        const { data, error } = await supabase
-            .from(TABLE_NAME)
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            throw new Error(`Erro Supabase: ${error.message}`);
+        const snapshot = await PARTICIPANTS_REF.orderByChild('created_at').once('value');
+        const data = snapshot.val();
+        let participants = [];
+        if (data) {
+            participants = Object.keys(data).map(key => ({ id: key, ...data[key] }));
         }
-        
-        showDebugInfo(`Encontrados ${data.length} participantes`);
-        return data;
-    } catch (error) {
-        console.error('Erro ao buscar participantes:', error);
-        showDebugInfo(`Erro: ${error.message}`);
+        participants.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        return participants;
+    } catch (err) {
+        console.error(err);
+        showDebug(`Erro ao buscar: ${err.message}`);
         return [];
     }
 }
 
-// Adicionar participante ao Supabase
-async function addParticipant(participant) {
-    try {
-        showDebugInfo("Enviando dados para o Supabase...");
-        
-        const { data, error } = await supabase
-            .from(TABLE_NAME)
-            .insert([participant])
-            .select();
-        
-        if (error) {
-            throw new Error(`Erro Supabase: ${error.message}`);
-        }
-        
-        showDebugInfo("Dados enviados com sucesso!");
-        return data;
-    } catch (error) {
-        console.error('Erro ao adicionar participante:', error);
-        showDebugInfo(`Erro no envio: ${error.message}`);
-        throw error;
-    }
-}
-
-// Verificar se o número já está registrado
+// Verifica se telefone já existe
 async function isPhoneRegistered(phone) {
-    try {
-        const { data, error } = await supabase
-            .from(TABLE_NAME)
-            .select('phone')
-            .eq('phone', phone);
-        
-        if (error) {
-            throw new Error(`Erro Supabase: ${error.message}`);
-        }
-        
-        return data && data.length > 0;
-    } catch (error) {
-        console.error('Erro ao verificar telefone:', error);
-        return false;
-    }
+    const normalized = normalizePhone(phone);
+    const snap = await PHONE_INDEX_REF.child(normalized).once('value');
+    return snap.exists();
 }
 
-// Envio do formulário
-registrationForm.addEventListener('submit', async function(e) {
+// Adiciona participante
+async function addParticipant(participantData) {
+    const newRef = PARTICIPANTS_REF.push();
+    const withTimestamp = { ...participantData, created_at: new Date().toISOString() };
+    await newRef.set(withTimestamp);
+    await PHONE_INDEX_REF.child(participantData.phone).set({ participantId: newRef.key, timestamp: new Date().toISOString() });
+    return { id: newRef.key, ...withTimestamp };
+}
+
+// Carrega lista e atualiza total
+async function loadParticipants() {
+    participantsContainer.innerHTML = `<div class="loading-spinner"><div class="spinner"></div><span>Atualizando...</span></div>`;
+    const participants = await fetchParticipants();
+    participantsContainer.innerHTML = '';
+    
+    if (participants.length === 0) {
+        participantsContainer.innerHTML = '<div class="loading-spinner">✨ Nenhum participante ainda. Seja o primeiro!</div>';
+        totalSpan.innerText = '0';
+        return;
+    }
+    
+    totalSpan.innerText = participants.length;
+    const recent = participants.slice(0, 15);
+    recent.forEach((p, idx) => {
+        participantsContainer.appendChild(renderParticipantCard(p, idx+1));
+    });
+}
+
+// Verifica se já inscrito via localStorage
+async function checkLocalStorageAndHideForm() {
+    const savedPhone = localStorage.getItem('registeredPhone');
+    if (savedPhone && await isPhoneRegistered(savedPhone)) {
+        alreadyDiv.classList.remove('hidden');
+        registrationForm.style.display = 'none';
+        successDiv.classList.add('hidden');
+        return true;
+    }
+    registrationForm.style.display = 'block';
+    alreadyDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    return false;
+}
+
+// Máscara de telefone
+function setupPhoneMask() {
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 11) value = value.slice(0,11);
+        if (value.length <= 2) e.target.value = `(${value}`;
+        else if (value.length <= 7) e.target.value = `(${value.slice(0,2)}) ${value.slice(2)}`;
+        else e.target.value = `(${value.slice(0,2)}) ${value.slice(2,7)}-${value.slice(7,11)}`;
+    });
+}
+
+// Submissão do form
+registrationForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = `<div class="spinner" style="margin:0 auto;"></div>`;
     
     const name = document.getElementById('name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
+    const phoneRaw = document.getElementById('phone').value;
     const level = document.getElementById('level').value;
-
-    // Validação básica
-    if (!name || !phone || !level) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
+    
+    // validações
+    if (!name || name.length < 3) {
+        showToast('Nome deve ter pelo menos 3 caracteres', true);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
         return;
     }
-
-    // Verificar formato do telefone
-    const phoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/;
-    if (!phoneRegex.test(phone)) {
-        alert("Por favor, insira um número de WhatsApp válido no formato (00) 00000-0000");
+    const normalizedPhone = normalizePhone(phoneRaw);
+    if (normalizedPhone.length < 10 || normalizedPhone.length > 11) {
+        showToast('Telefone inválido (DDD + 8 ou 9 dígitos)', true);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
         return;
     }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'VERIFICANDO...';
-    showDebugInfo("Iniciando verificação...");
-
+    if (!level) {
+        showToast('Selecione seu nível', true);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        return;
+    }
+    
     try {
-        // Verificar se o número já está cadastrado
-        showDebugInfo("Verificando se o telefone já existe...");
-        const alreadyRegistered = await isPhoneRegistered(phone);
-        
-        if (alreadyRegistered) {
-            showDebugInfo("Telefone já cadastrado!");
-            showErrorNotification();
-            localStorage.setItem('registeredPhone', phone);
-            showAlreadyRegistered();
+        const already = await isPhoneRegistered(normalizedPhone);
+        if (already) {
+            localStorage.setItem('registeredPhone', normalizedPhone);
+            alreadyDiv.classList.remove('hidden');
+            registrationForm.style.display = 'none';
+            successDiv.classList.add('hidden');
+            showToast('Este número já está inscrito!', true);
             submitBtn.disabled = false;
-            submitBtn.textContent = 'CONFIRMAR INSCRIÇÃO';
+            submitBtn.innerHTML = originalText;
             return;
         }
-
-        submitBtn.textContent = 'SALVANDO...';
-        showDebugInfo("Salvando inscrição...");
         
-        // Criar novo participante
-        const newParticipant = {
+        await addParticipant({
             name: name,
-            phone: phone,
-            level: level,
-            created_at: new Date().toISOString()
-        };
+            phone: normalizedPhone,
+            level: level
+        });
         
-        // Adicionar ao Supabase
-        await addParticipant(newParticipant);
-        
-        // Armazenar localmente que este número está registrado
-        localStorage.setItem('registeredPhone', phone);
-        
-        showSuccessMessage();
+        localStorage.setItem('registeredPhone', normalizedPhone);
         registrationForm.reset();
-        
-        // Atualizar a lista de participantes
+        successDiv.classList.remove('hidden');
+        alreadyDiv.classList.add('hidden');
+        registrationForm.style.display = 'none';
+        showToast('✅ Inscrição confirmada! Te esperamos lá.', false);
         await loadParticipants();
-        
-        showNotification();
-        showDebugInfo("Processo concluído com sucesso!");
-        
-    } catch (error) {
-        console.error("Erro completo:", error);
-        showDebugInfo(`Erro completo: ${error.message}`);
-        alert("Erro ao salvar inscrição. Tente novamente.");
-        showErrorNotification();
+        showDebug('Inscrição salva com sucesso');
+    } catch (err) {
+        console.error(err);
+        showToast('Erro ao salvar. Tente novamente.', true);
+        showDebug(`Erro: ${err.message}`);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'CONFIRMAR INSCRIÇÃO';
+        submitBtn.innerHTML = originalText;
     }
 });
 
-// Carregar participantes
-async function loadParticipants() {
-    participantsContainer.innerHTML = '<div class="loading">Carregando participantes...</div>';
-    showDebugInfo("Carregando lista de participantes...");
-    
-    try {
-        const participants = await fetchParticipants();
-        
-        participantsContainer.innerHTML = '';
-        
-        if (participants.length === 0) {
-            participantsContainer.innerHTML = '<div class="loading">Nenhum participante inscrito ainda.</div>';
-            totalParticipantsElement.textContent = '0';
-            showDebugInfo("Nenhum participante encontrado");
-            return;
-        }
-        
-        // Já ordenado por created_at descendente via Supabase
-        totalParticipantsElement.textContent = participants.length;
-        
-        // Mostrar apenas os 10 mais recentes
-        const recentParticipants = participants.slice(0, 10);
-        
-        recentParticipants.forEach((participant, index) => {
-            addParticipantToDOM(index + 1, participant);
-        });
-        
-        showDebugInfo(`Lista carregada: ${participants.length} participantes totais`);
-    } catch (error) {
-        participantsContainer.innerHTML = '<div class="loading">Erro ao carregar participantes.</div>';
-        console.error('Erro ao carregar participantes:', error);
-        showDebugInfo(`Erro ao carregar: ${error.message}`);
-    }
+// Inicialização
+async function init() {
+    setupPhoneMask();
+    await checkLocalStorageAndHideForm();
+    await loadParticipants();
+    showDebug('Sistema pronto • Cores personalizáveis via CSS');
+    setInterval(() => loadParticipants(), 45000);
 }
 
-// Inicializar a aplicação
-function initApp() {
-    showDebugInfo("Aplicação inicializada. Aguardando credenciais Supabase...");
-    checkIfAlreadyRegistered();
-    loadParticipants();
-}
-
-// Iniciar quando a página carregar
-document.addEventListener('DOMContentLoaded', initApp);
+// Prevenção de zoom adicional
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+document.addEventListener('DOMContentLoaded', init);
